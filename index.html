@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html>
+ <head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>spire calculator</title>
+ </head>
+ <body>
+  <label for="threat">Select monster:</label>
+  <select name="threat" id="threat"></select>
+  <label for="terrain">Select terrain:</label>
+  <select name="terrain" id="terrain"></select>
+  <br>
+  <label>best weapon: </label>
+  <span id="weapon"></span>
+  <br>
+  <label>best chasis: </label>
+  <span id="lowerpart"></span>
+ </body>
+ <script>
+  const monsters = {
+   fire_elm: {
+    weapon: {
+     laser: 1.05,
+     flame: 0,
+     plasma: 0.25,
+     kinetic: 0.5,
+     missile: 0.5,
+     sonic: 1,
+     shotgun: 0.75,
+     tesla: 0.65
+    },
+    nozone: {
+     freeze: true,
+     flooded: true,
+    },
+    amp: {
+     hot: 1.75,
+     humid: 0.8,
+     steam: 0.9,
+    }
+   },
+   water_elm: {
+    weapon: {
+     laser: 0.65,
+     flame: 0.5,
+     plasma: 1,
+     kinetic: 0.2,
+     missile: 0.5,
+     sonic: 0.5,
+     shotgun: 0.25,
+     tesla: 0.75
+    },
+    nozone: {
+     hot: true,
+     freeze: true,
+    },
+    amp: {
+     steam: 1.5,
+     river: 1.1,
+     flooded: 2,
+     rain: 1.75,
+     humid: 1.25,
+    }
+   },
+   rock_golem: {
+    weapon: {
+     laser: 1,
+     flame: 0.5,
+     plasma: 1,
+     kinetic: 0.65,
+     missile: 0.95,
+     sonic: 0.75,
+     shotgun: 0.35,
+     tesla: 0
+    },
+    nozone: {},
+    amp: {}
+   },
+   bone_golem: {
+    weapon: {
+     laser: 0.45,
+     flame: 0.35,
+     plasma: 0.55,
+     kinetic: 1,
+     missile: 1,
+     sonic: 0.75,
+     shotgun: 0.75,
+     tesla: 0.15
+    },
+    nozone: {},
+    amp: {}
+   },
+   mech_dino: {
+    weapon: {
+     laser: 0.85,
+     flame: 0.05,
+     plasma: 0.55,
+     kinetic: 0.45,
+     missile: 0.5,
+     sonic: 0.35,
+     shotgun: 0.5,
+     tesla: 1
+    },
+    nozone: {},
+    amp: {}
+   },
+   plant: {
+    weapon: {
+     laser: 0.42,
+     flame: 1,
+     plasma: 0.65,
+     kinetic: 0.2,
+     missile: 0.25,
+     sonic: 0.75,
+     shotgun: 0.35,
+     tesla: 0.38
+    },
+    nozone: {},
+    amp: {}
+   },
+   crazed: {
+    weapon: {
+     laser: 0.5,
+     flame: 0.85,
+     plasma: 0.65,
+     kinetic: 1,
+     missile: 0.35,
+     sonic: 0.15,
+     shotgun: 0.95,
+     tesla: 0.6
+    },
+    nozone: {},
+    amp: {}
+   },
+   minotaur: {
+    weapon: {
+     laser: 0.32,
+     flame: 0.5,
+     plasma: 0.82,
+     kinetic: 0.44,
+     missile: 1,
+     sonic: 0.15,
+     shotgun: 0.2,
+     tesla: 0.35
+    },
+    nozone: {},
+    amp: {}
+   },
+   ooze: {
+    weapon: {
+     laser: 0.2,
+     flame: 0.65,
+     plasma: 1,
+     kinetic: 0,
+     missile: 0,
+     sonic: 0.85,
+     shotgun: 0,
+     tesla: 0.15
+    },
+    nozone: {},
+    amp: {}
+   },
+   zombie: {
+    weapon: {
+     laser: 0.35,
+     flame: 1,
+     plasma: 0.45,
+     kinetic: 0.08,
+     missile: 0.8,
+     sonic: 0.18,
+     shotgun: 0.95,
+     tesla: 0.05
+    },
+    nozone: {},
+    amp: {}
+   },
+   raptor: {
+    weapon: {
+     laser: 0.68,
+     flame: 0.55,
+     plasma: 0.85,
+     kinetic: 1,
+     missile: 0.44,
+     sonic: 0.22,
+     shotgun: 0.33,
+     tesla: 0.66
+    },
+    nozone: {},
+    amp: {}
+   },
+   frost_giant: {
+    weapon: {
+     laser: 0.9,
+     flame: 0.82,
+     plasma: 1,
+     kinetic: 0.25,
+     missile: 0.08,
+     sonic: 0.45,
+     shotgun: 0.28,
+     tesla: 0.5
+    },
+    nozone: {
+     hot: true
+    },
+    amp: {
+     freeze: 2.5,
+     hail: 1.65
+    }
+   },
+   swarm: {
+    weapon: {
+     laser: 0.02,
+     flame: 1,
+     plasma: 0.04,
+     kinetic: 0.01,
+     missile: 0.08,
+     sonic: 0.66,
+     shotgun: 0.38,
+     tesla: 0.45
+    },
+    nozone: {},
+    amp: {}
+   },
+   dragon: {
+    weapon: {
+     laser: 0.18,
+     flame: 0,
+     plasma: 0.12,
+     kinetic: 0.35,
+     missile: 1,
+     sonic: 0.22,
+     shotgun: 0.65,
+     tesla: 0.15
+    },
+    nozone: {},
+    amp: {}
+   },
+   mech_dragon: {
+    weapon: {
+     laser: 0.84,
+     flame: 0.1,
+     plasma: 0.68,
+     kinetic: 0.18,
+     missile: 0.75,
+     sonic: 0.22,
+     shotgun: 0.28,
+     tesla: 1
+    },
+    nozone: {},
+    amp: {}
+   },
+   construct: {
+    weapon: {
+     laser: 0.5,
+     flame: 0.2,
+     plasma: 0.6,
+     kinetic: 0.34,
+     missile: 0.9,
+     sonic: 0.08,
+     shotgun: 0.28,
+     tesla: 1
+    },
+    nozone: {},
+    amp: {}
+   },
+   beholder: {
+    weapon: {
+     laser: 0.75,
+     flame: 0.15,
+     plasma: 1,
+     kinetic: 0.45,
+     missile: 0.05,
+     sonic: 0.01,
+     shotgun: 0.12,
+     tesla: 0.3
+    },
+    nozone: {},
+    amp: {}
+   },
+   worm: {
+    weapon: {
+     laser: 0.55,
+     flame: 0.38,
+     plasma: 0.45,
+     kinetic: 0.2,
+     missile: 0.05,
+     sonic: 1,
+     shotgun: 0.02,
+     tesla: 0.01
+    },
+    nozone: {},
+    amp: {}
+   },
+   hydra: {
+    weapon: {
+     laser: 0.85,
+     flame: 0.75,
+     plasma: 0.85,
+     kinetic: 0.25,
+     missile: 0.45,
+     sonic: 0.5,
+     shotgun: 0.6,
+     tesla: 0.65
+    },
+    nozone: {},
+    amp: {}
+   },
+   colossus: {
+    weapon: {
+     laser: 1,
+     flame: 0.05,
+     plasma: 0.75,
+     kinetic: 0.45,
+     missile: 1,
+     sonic: 0.35,
+     shotgun: 0.35,
+     tesla: 0.5
+    },
+    nozone: {},
+    amp: {}
+   },
+   lich: {
+    weapon: {
+     laser: 0.1,
+     flame: 0.1,
+     plasma: 0.1,
+     kinetic: 0.45,
+     missile: 0.75,
+     sonic: 0.35,
+     shotgun: 0.75,
+     tesla: 0.5
+    },
+    nozone: {},
+    amp: {}
+   },
+   ape: {
+    weapon: {
+     laser: 1,
+     flame: 0.95,
+     plasma: 0.85,
+     kinetic: 0.5,
+     missile: 0.5,
+     sonic: 0.05,
+     shotgun: 0.35,
+     tesla: 0.68
+    },
+    nozone: {},
+    amp: {}
+   },
+   bandit: {
+    weapon: {
+     laser: 0.65,
+     flame: 0.5,
+     plasma: 0.85,
+     kinetic: 1,
+     missile: 0.5,
+     sonic: 0.25,
+     shotgun: 0.75,
+     tesla: 0.25
+    },
+    nozone: {},
+    amp: {}
+   },
+   croc: {
+    weapon: {
+     laser: 0.65,
+     flame: 0.05,
+     plasma: 0.6,
+     kinetic: 0.5,
+     missile: 0.5,
+     sonic: 1,
+     shotgun: 0.2,
+     tesla: 0.75
+    },
+    nozone: {},
+    amp: {}
+   },
+   djinni: {
+    weapon: {
+     laser: 0,
+     flame: 0.35,
+     plasma: 1,
+     kinetic: 0.15,
+     missile: 0,
+     sonic: 0.65,
+     shotgun: 0.22,
+     tesla: 0.4
+    },
+    nozone: {},
+    amp: {}
+   },
+   snake: {
+    weapon: {
+     laser: 0.5,
+     flame: 0.5,
+     plasma: 0.5,
+     kinetic: 0.5,
+     missile: 0.5,
+     sonic: 0.5,
+     shotgun: 0.5,
+     tesla: 0.5
+    },
+    nozone: {},
+    amp: {}
+   },
+   centipede: {
+    weapon: {
+     laser: 0.5,
+     flame: 0.85,
+     plasma: 0.95,
+     kinetic: 0.65,
+     missile: 0.6,
+     sonic: 0,
+     shotgun: 0.5,
+     tesla: 0.01
+    },
+    nozone: {},
+    amp: {}
+   },
+   spider: {
+    weapon: {
+     laser: 0.65,
+     flame: 1,
+     plasma: 0.22,
+     kinetic: 0.75,
+     missile: 0.15,
+     sonic: 0.38,
+     shotgun: 0.9,
+     tesla: 0.18
+    },
+    nozone: {},
+    amp: {}
+   },
+   manticore: {
+    weapon: {
+     laser: 0.05,
+     flame: 0.25,
+     plasma: 0.95,
+     kinetic: 0.5,
+     missile: 0.15,
+     sonic: 0.48,
+     shotgun: 0.4,
+     tesla: 0.6
+    },
+    nozone: {},
+    amp: {}
+   },
+   fiend: {
+    weapon: {
+     laser: 0.75,
+     flame: 0.25,
+     plasma: 0.5,
+     kinetic: 0.25,
+     missile: 0.75,
+     sonic: 0.25,
+     shotgun: 0.5,
+     tesla: 0.5
+    },
+    nozone: {},
+    amp: {}
+   },
+   bat: {
+    weapon: {
+     laser: 0.16,
+     flame: 0.18,
+     plasma: 0.12,
+     kinetic: 0.25,
+     missile: 0.02,
+     sonic: 1,
+     shotgun: 0.9,
+     tesla: 0.58
+    },
+    nozone: {},
+    amp: {}
+   },
+   medusa: {
+    weapon: {
+     laser: 0.35,
+     flame: 0.1,
+     plasma: 0.3,
+     kinetic: 0.95,
+     missile: 1,
+     sonic: 0.15,
+     shotgun: 0.88,
+     tesla: 0.26
+    },
+    nozone: {},
+    amp: {}
+   },
+   ettin: {
+    weapon: {
+     laser: 0.5,
+     flame: 0.35,
+     plasma: 0.8,
+     kinetic: 0.5,
+     missile: 0.25,
+     sonic: 0.3,
+     shotgun: 0.6,
+     tesla: 0.09
+    },
+    nozone: {},
+    amp: {}
+   },
+   faceless: {
+    weapon: {
+     laser: 0.6,
+     flame: 0.28,
+     plasma: 0.6,
+     kinetic: 0,
+     missile: 0.05,
+     sonic: 0.8,
+     shotgun: 0.15,
+     tesla: 1
+    },
+    nozone: {},
+    amp: {}
+   },
+   enchanted: {
+    weapon: {
+     laser: 1,
+     flame: 0.02,
+     plasma: 0.95,
+     kinetic: 0.2,
+     missile: 0.7,
+     sonic: 0.05,
+     shotgun: 0.65,
+     tesla: 0.01
+    },
+    nozone: {},
+    amp: {}
+   },
+   gargoyle: {
+    weapon: {
+     laser: 0.15,
+     flame: 0.4,
+     plasma: 0.3,
+     kinetic: 0.5,
+     missile: 0.5,
+     sonic: 0.85,
+     shotgun: 1,
+     tesla: 0.2
+    },
+    nozone: {},
+    amp: {}
+   },
+   chimera: {
+    weapon: {
+     laser: 0.38,
+     flame: 0.6,
+     plasma: 0.42,
+     kinetic: 0.85,
+     missile: 0.35,
+     sonic: 0.5,
+     shotgun: 0.65,
+     tesla: 0.8
+    },
+    nozone: {},
+    amp: {}
+   },
+   gorgon: {
+    weapon: {
+     laser: 0.65,
+     flame: 0.65,
+     plasma: 0.65,
+     kinetic: 0.65,
+     missile: 0.65,
+     sonic: 0.65,
+     shotgun: 0.65,
+     tesla: 0.65
+    },
+    nozone: {},
+    amp: {}
+   },
+   kraken: {
+    weapon: {
+     laser: 0.75,
+     flame: 0.35,
+     plasma: 0.75,
+     kinetic: 0.35,
+     missile: 0.5,
+     sonic: 0.18,
+     shotgun: 0.05,
+     tesla: 0.85
+    },
+    nozone: {},
+    amp: {}
+   },
+   homunculus: {
+    weapon: {
+     laser: 0.05,
+     flame: 1,
+     plasma: 0.1,
+     kinetic: 0.85,
+     missile: 0.65,
+     sonic: 0.5,
+     shotgun: 0.75,
+     tesla: 0.2
+    },
+    nozone: {},
+    amp: {}
+   }
+  };
+  const chasis ={
+   wheel:
+   {
+    sand:0.9,
+    swamp:0.35,
+    jungle:0.92,
+    rocky:0.65,
+    gravel:1,
+    muddy:0.85,
+    grass:1.3,
+    brush:0.9,
+   },
+   tread:
+   {
+    sand:1.15,
+    swamp:0.55,
+    forest:1,
+    jungle:0.95,
+    rocky:0.65,
+    gravel:1.3,
+    muddy:0.88,
+   },
+   biped:
+   {
+    sand:0.78,
+    swamp:0.68,
+    forest:1,
+    jungle:0.82,
+    rocky:0.48,
+    muddy:0.85,
+    grass:1.25,
+    brush:0.92,
+   },
+   quad:
+   {
+    sand:0.86,
+    swamp:0.58,
+    forest:1.25,
+    rocky:0.95,
+    gravel:0.9,
+    muddy:0.68,
+    grass:1,
+    brush:0.95,
+   },
+   spider:
+   {
+    sand:0.75,
+    swamp:0.9,
+    forest:0.82,
+    jungle:0.77,
+    rocky:1.25,
+    gravel:0.86,
+    muddy:0.92,
+    brush:1,
+   },
+   hover:
+   {
+    swamp:1.3,
+    forest:0.74,
+    jungle:0.6,
+    rocky:0.82,
+    muddy:1.15,
+    brush:0.78,
+   },
+  }
+  const types = ['sand','swamp','forest','jungle','rocky','gravel','muddy','grass','brush'];
+  var threat=document.getElementById("threat");
+  var terrain=document.getElementById("terrain");
+  var weapon=document.getElementById("weapon");
+  var lowerpart=document.getElementById("lowerpart");
+  for(a in monsters){
+   var option=document.createElement("option");
+   option.value=a;
+   option.text=a;
+   threat.append(option)
+  }
+  for(a of types){
+   var option=document.createElement("option");
+   option.value=a;
+   option.text=a;
+   terrain.append(option)
+  }
+  terrain.onchange=()=>lowerpart.textContent=Object.keys(chasis).filter((i)=>chasis[i][terrain.value]==Math.max.apply(Math, Object.keys(chasis).map((o)=>chasis[o][terrain.value]).filter(Boolean)))[0];
+  threat.onchange=()=>weapon.textContent=Object.keys(monsters[threat.value].weapon).filter((i)=>monsters[threat.value].weapon[i]==Math.max(...Object.values(monsters[threat.value].weapon)))[0];
+ </script>
+</html>
