@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+  <head>
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Space minigame</title>
+  </head>
+  <body>
+    
+  </body>
+  <script>
+  var canvas=document.createElement("canvas");
+canvas.height=window.innerHeight-40
+canvas.width=window.outerWidth-20
+var c = canvas.getContext("2d");
+var w=canvas.width
+var h=canvas.height
+var perder=false
+var left = false;
+var right = false;
+var timeStep = 50; // In milliseconds
+var aceleration=0.5
+var velocity=0
+var asteroids=[];
+var player;
+class nave{
+    constructor(size,x,y) {
+        this.height = size;
+        this.width = size;
+        this.x=x;
+        this.y=y-size;
+    }
+    stroke(){
+        c.strokeRect(this.x, this.y, this.width, this.height);
+        c.beginPath();
+        c.moveTo(this.x,this.y);
+        c.lineTo(this.x+this.width/2,this.y-this.height/2);
+        c.lineTo(this.x+this.width,this.y);
+        c.closePath();
+        c.stroke();
+    }
+    move(x){
+		let sum=this.x+x
+		if(sum>0 && sum + this.width <w)this.x=sum
+    }
+}
+class asteroid{
+    constructor(r,x,y) {
+        this.r=r;
+        this.x=x;
+        this.y=y;
+    }
+    stroke(){
+        c.beginPath();
+        c.arc(this.x, this.y, this.r, 0, 2 * Math.PI);
+        c.stroke();
+    }
+    move(y){
+        this.y+=y
+        return this.y>h
+    }
+}
+function getRandom(min, max) {
+    return Math.random() * (max - min) + min;
+}
+function colision(player, asteroid) {
+    var dx = player.x + player.width/2 - asteroid.x;
+    var dy = player.y + player.height/2 - asteroid.y;
+    var distance = Math.sqrt(dx * dx + dy * dy);
+    return (distance < asteroid.r + player.width/3)
+}
+function restart() {
+    player = new nave(40,canvas.width/2,canvas.height-50)
+    velocity=0
+    asteroids=[];
+    for(let i=0;i<10;i++){
+        var size=getRandom(20,60)
+        asteroids[i] = new asteroid(size,getRandom(0+size,w-size),getRandom(size-h,-size))
+    }
+}
+window.onkeydown = function(e) {
+    if (e.keyCode == 32 || e.keyCode == 37 || e.keyCode == 39) {
+        e.preventDefault();
+        switch(e.keyCode){
+            case 32: //espacio
+                restart()
+                perder=false
+                break;
+            case 37: //left 
+                left=true
+                break;
+            case 39: //right
+                right=true
+                break;
+        }
+    }
+};
+window.onkeyup = function(e) {
+    if (e.keyCode == 37 || e.keyCode == 39) {
+        e.preventDefault();
+        switch(e.keyCode){
+            case 37: //left 
+                left=false
+                break;
+            case 39: //right
+                right=false
+                break;
+        }
+    }
+};
+document.body.innerHTML = "";
+document.body.append(canvas)
+player = new nave(40,canvas.width/2,canvas.height-50)
+for(let i=0;i<10;i++){
+    var size=getRandom(20,60)
+    asteroids[i] = new asteroid(size,getRandom(0+size,w-size),getRandom(size-h,-size))
+}
+function updateAll() {
+    if(!perder){
+        c.clearRect(0, 0, w, h);
+        c.font = "20px Arial";
+        c.fillText(""+velocity*2, 10, 20);
+        if(left)player.move(-20)
+        if(right)player.move(20)
+        player.stroke()
+        for(let i=0;i<10;i++){
+            if(asteroids[i].move(velocity)){
+                var size=getRandom(20,60)
+                asteroids[i] = new asteroid(size,getRandom(0+size,w-size),getRandom(-size,size))
+            }
+            if(colision(player,asteroids[i]))perder=true
+            asteroids[i].stroke();
+        }
+        if(perder){
+            c.fillText("Press Space To Restart", w/2-20, h/2);
+        }
+        velocity+=aceleration;
+    }
+}
+setInterval(updateAll, timeStep);
+  </script>
+</html>
