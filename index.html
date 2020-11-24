@@ -670,19 +670,19 @@
   var terrain=document.getElementById("terrain");
   var weapon=document.getElementById("weapon");
   var lowerpart=document.getElementById("lowerpart");
-  for(a in monsters){
+  for(let a in monsters){
    var option=document.createElement("option");
    option.value=a;
    option.text=a;
    threat.append(option)
   }
-  for(a of types){
+  for(let a of types){
    var option=document.createElement("option");
    option.value=a;
    option.text=a;
    terrain.append(option)
   }
-  terrain.onchange=()=>lowerpart.textContent=Object.keys(chasis).filter((i)=>chasis[i][terrain.value]==Math.max.apply(Math, Object.keys(chasis).map((o)=>chasis[o][terrain.value]).filter(Boolean)))[0];
-  threat.onchange=()=>weapon.textContent=Object.keys(monsters[threat.value].weapon).filter((i)=>monsters[threat.value].weapon[i]==Math.max(...Object.values(monsters[threat.value].weapon)))[0];
+  terrain.onchange=()=>lowerpart.textContent=Object.keys(chasis).filter((i)=>chasis[i][terrain.value]==Math.max.apply(Math, Object.keys(chasis).map((o)=>chasis[o][terrain.value]).filter(Boolean))).join("/");
+  threat.onchange=()=>weapon.textContent=Object.keys(monsters[threat.value].weapon).filter((i)=>monsters[threat.value].weapon[i]==Math.max(...Object.values(monsters[threat.value].weapon))).join("/");
  </script>
 </html>
