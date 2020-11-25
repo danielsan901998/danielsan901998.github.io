@@ -9,12 +9,16 @@
   <select name="threat" id="threat"></select>
   <label for="terrain">Select terrain:</label>
   <select name="terrain" id="terrain"></select>
+  <label for="effect">Select effect:</label>
+  <select name="effect" id="effect"></select>
   <br>
   <label>best weapon: </label>
   <span id="weapon"></span>
   <br>
   <label>best chasis: </label>
   <span id="lowerpart"></span>
+  <label>best equipment/chasis: </label>
+  <span id="equipment"></span>
  </body>
  <script>
   const monsters = {
@@ -666,10 +670,13 @@
    },
   }
   const types = ['sand','swamp','forest','jungle','rocky','gravel','muddy','grass','brush'];
+  const effects = ['freeze','hot','corrosive','humid','windy','hilly','mountain','radioactive','quake','dust','river','tar','steam','flooded','fog','rain','hail','chasm','dark','gravity'];
   var threat=document.getElementById("threat");
   var terrain=document.getElementById("terrain");
+  var effect=document.getElementById("effect");
   var weapon=document.getElementById("weapon");
   var lowerpart=document.getElementById("lowerpart");
+  var equipment=document.getElementById("equipment");
   for(let a in monsters){
    var option=document.createElement("option");
    option.value=a;
@@ -682,7 +689,77 @@
    option.text=a;
    terrain.append(option)
   }
+  for(let a of effects){
+   var option=document.createElement("option");
+   option.value=a;
+   option.text=a;
+   effect.append(option)
+  }
   terrain.onchange=()=>lowerpart.textContent=Object.keys(chasis).filter((i)=>chasis[i][terrain.value]==Math.max.apply(Math, Object.keys(chasis).map((o)=>chasis[o][terrain.value]).filter(Boolean))).join("/");
-  threat.onchange=()=>weapon.textContent=Object.keys(monsters[threat.value].weapon).filter((i)=>monsters[threat.value].weapon[i]==Math.max(...Object.values(monsters[threat.value].weapon))).join("/");
+   threat.onchange=()=>weapon.textContent=Object.keys(monsters[threat.value].weapon).filter((i)=>monsters[threat.value].weapon[i]==Math.max(...Object.values(monsters[threat.value].weapon))).join("/");
+   effect.onchange=()=>{
+    switch (effect.value){
+     case 'freeze':
+      equipment.textContent="radiator";
+      break;
+     case 'hot':
+      equipment.textContent="coolant";
+      break;
+     case 'corrosive':
+      equipment.textContent="ablative";
+      break;
+     case 'humid':
+      equipment.textContent="seals";
+      break;
+     case 'windy':
+      equipment.textContent="not hover";
+      break;
+     case 'hilly':
+      equipment.textContent="spider";
+      break;
+     case 'mountain':
+      equipment.textContent="spider/grapple";
+      break;
+     case 'radioactive':
+      equipment.textContent="shields";
+      break;
+     case 'quake':
+      equipment.textContent="stabilizer";
+      break;
+     case 'dust':
+      equipment.textContent="seals";
+      break;
+     case 'river':
+      equipment.textContent="hover";
+      break;
+     case 'tar':
+      equipment.textContent="quad";
+      break;
+     case 'steam':
+      equipment.textContent="shields";
+      break;
+     case 'flooded':
+      equipment.textContent="hover";
+      break;
+     case 'fog':
+      equipment.textContent="sonar";
+      break;
+     case 'rain':
+      equipment.textContent="seals";
+      break;
+     case 'hail':
+      equipment.textContent="ablative/shields";
+      break;
+     case 'chasm':
+      equipment.textContent="grapple";
+      break;
+     case 'dark':
+      equipment.textContent="infrared";
+      break;
+     case 'gravity':
+      equipment.textContent="small";
+      break;
+    }
+   }
  </script>
 </html>
