@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html>
+<head></head>
+<body></body>
+<script>
+var canvas=document.createElement("canvas");
+canvas.height=window.innerHeight-40
+canvas.width=window.outerWidth-20
+var c = canvas.getContext("2d");
+var w=canvas.width
+var h=canvas.height
+var timeStep = 30; // In milliseconds
+function getRandom(min, max) {
+    return Math.random() * (max - min) + min;
+}
+class Bullet{
+    constructor(x,y,speed,direction,target){
+        this.x=x;
+        this.y=y;
+        this.speed=speed;
+        this.direction=direction;
+        this.target=target;
+    }
+    prestroke(){
+        c.beginPath();
+        c.lineWidth = 1;
+        c.strokeStyle = "#ffcc00";
+    }
+    stroke(){
+        c.rect(this.x,this.y,1,1);
+    }
+    poststroke(){
+        c.stroke();
+    }
+    update(){
+        this.x+=Math.cos(this.direction)*this.speed;
+        this.y+=Math.sin(this.direction)*this.speed;
+        if(this.x<0 || this.y <0 || this.x > w || this.y > h)
+            return true;
+        else
+            return this.checkCollision(this.target);
+    }
+    checkCollision(humanoids){
+        for(let i=0;i<humanoids.length;i++){
+            const x=this.x-humanoids[i].x;
+            const y=this.y-humanoids[i].y;
+            if(Math.abs(x)<humanoids[i].width && Math.abs(y) < humanoids[i].height){
+                humanoids[i].health--;
+                return true;
+            }
+        }
+        return false;
+    }
+}
+class Humanoid{
+    constructor(size,x,y,color,health,speed) {
+        this.height = size*2;
+        this.width = size;
+        this.x=x;
+        this.y=y-size;
+        this.color=color;
+        this.target=null;
+        this.maxhealth = health;
+        this.health = this.maxhealth;
+        this.maxspeed=speed;
+        this.speed=this.maxspeed;
+        this.vision=100**2;
+    }
+    prestroke(){
+        c.beginPath();
+        c.lineWidth = this.width;
+        c.strokeStyle = this.color;
+    }
+    stroke(){
+        c.rect(this.x,this.y,this.width, this.height);
+    }
+    poststroke(){
+        c.stroke();
+    }
+    move(dir){
+        this.x+=Math.cos(dir)*this.speed;
+        this.y+=Math.sin(dir)*this.speed;
+        //don't move outside canvas area
+        //this.x=Math.max(0,Math.min(w-this.width,this.x))
+        //this.y=Math.max(0,Math.min(h-this.height,this.y))
+    }
+    update(){
+        this.speed=this.maxspeed*this.health/this.maxhealth;
+    }
+    getTarget(humanoids){
+        if(this.target==null)var max=this.vision;
+        else var max=(this.x-this.target.x)**2+(this.y-this.target.y)**2;//Math.hypot(this.x-this.target.x,this.y-this.target.y);
+        for(let i=0;i<humanoids.length;i++){
+            const x=this.x-humanoids[i].x;
+            const y=this.y-humanoids[i].y;
+            const d=(x)**2+(y)**2;
+            if(d<max){
+                max=d;
+                this.target=humanoids[i];
+            }
+        }
+    }
+}
+class Zombie extends Humanoid{
+    constructor(size,x,y,health,speed){
+        super(size,x,y,"green",health,speed)
+    }
+    checkpos(){
+        //don't move outside canvas area
+        this.x=Math.max(0,Math.min(w-this.width,this.x));
+        this.y=Math.max(0,Math.min(h-this.height,this.y));
+    }
+    update(){
+        super.update();
+        if(this.target==null || this.target.health<=0){
+            this.target=null;
+            this.getTarget(game.humans);
+        }
+        if(this.target!=null){
+            const x=this.target.x-this.x;
+            const y=this.target.y-this.y;
+            if(Math.abs(x)<this.width && Math.abs(y) < this.height) this.target.health--;
+            else this.move(Math.atan2(y,x));
+        }else{
+            this.move(getRandom(-Math.PI,Math.PI));
+            this.checkpos();
+        }
+    }
+}
+class Civilian extends Humanoid{
+    constructor(x,y,health){
+        super(4,x,y,"#ecbcb4",health,1) //skin color
+    }
+    update(){
+        super.update();
+        this.getTarget(game.zombies);
+        if(this.target==null){
+            this.move(getRandom(-Math.PI,Math.PI));
+        }else{
+            let x=this.target.x-this.x;
+            let y=this.target.y-this.y;
+            this.move(Math.atan2(-y,-x));
+        }
+    }
+}
+class Police extends Humanoid{
+    constructor(x,y,health){
+        super(4,x,y,"#33ccff",health,1) //blue color
+        this.range=this.vision/2;
+        this.reloadtime=10;
+        this.reload=0;
+    }
+    shoot(dir){
+        game.bullets.push(new Bullet(this.x,this.y,4,dir,game.zombies));
+    }
+    update(){
+        super.update();
+        if(this.target?.health<=0)
+            this.target=null;
+        this.getTarget(game.zombies);
+        if(this.target==null){
+            this.move(getRandom(-Math.PI,Math.PI));
+        }else{
+            const x=this.target.x-this.x;
+            const y=this.target.y-this.y;
+            const d=(x)**2+(y)**2;
+            if(d<this.range){
+                if(this.reload==0){
+                    this.reload=this.reloadtime;
+                    this.shoot(Math.atan2(y,x))
+                }
+                else
+                    this.reload--;
+            }
+            else this.move(Math.atan2(y,x));
+        }
+    }
+}
+class Game{
+    constructor() {
+        this.load();
+        this.zombies=[]
+        this.humans=[]
+        this.bullets=[]
+        this.populate()
+        this.keys = [];
+    }
+    populate(){
+        const max=Math.min(10000,this.state.level*100);
+        const prob=max/20000
+        for(let i=0;i<max;i++){
+            const x=getRandom(w/4,w/4*3);
+            const y=getRandom(h/4,h/4*3);
+            const rand = Math.random() < prob;
+            if(rand){
+                this.humans.push(new Police(x,y,this.state.level*10,1));
+            }else{
+                this.humans.push(new Civilian(x,y,this.state.level*10,1));
+            }
+        }
+    }
+    changelevel(level){
+        this.state.level=level;
+        //this.save();
+        this.bullets.splice(0,this.bullets.length);
+        this.populate();
+        this.zombies.splice(1000,this.zombies.length-1000);
+        for(let i=0;i<this.zombies.length;i++){
+            const dir=getRandom(0,Math.PI/2);
+            const speed=getRandom(0,Math.min(w/4,h/4))
+            this.zombies[i].x=Math.cos(dir)*speed;
+            this.zombies[i].y=Math.sin(dir)*speed;
+        }
+    }
+    update(){
+        if(this.humans.length==0)this.changelevel(this.state.level+1)
+        for(let i=0;i<this.bullets.length;){
+            if(this.bullets[i].update()){
+                this.bullets.splice(i, 1);
+            }else{
+                i++;
+            }
+        }
+        for(let i=0;i<this.zombies.length;){
+            if(this.zombies[i].health<=0){
+                this.zombies.splice(i, 1);
+            }else{
+                this.zombies[i].update();
+                i++;
+            }
+        }
+        for(let i=0;i<this.humans.length;){
+            if(this.humans[i].health<=0){
+                this.zombies[this.zombies.length]= new Zombie(4,this.humans[i].x,this.humans[i].y,10,2);
+                this.humans.splice(i, 1);
+                this.state.killcount++;
+            }else if(this.humans[i].x<0 || this.humans[i].y <0 || this.humans[i].x > w || this.humans[i].y > h){
+                this.humans[i].health=0;
+                this.humans.splice(i, 1);
+                this.state.flee++;
+            }else{
+                this.humans[i].update();
+                i++;
+            }
+        }
+        if(!document.hidden)requestAnimationFrame(()=>game.stroke());  // for subsequent frames
+    }
+    strokeclass(list,instance){
+        let first=list.find(h=>h instanceof instance)
+        if(first){
+            first.prestroke();
+            for(let i of list){
+                if(i instanceof instance)
+                    i.stroke();
+            }
+            first.poststroke();
+        }
+    }
+    stroke(){
+        c.clearRect(0, 0, w, h);
+        this.strokeclass(this.humans,Civilian);
+        this.strokeclass(this.humans,Police);
+        this.strokeclass(this.zombies,Zombie);
+        this.strokeclass(this.bullets,Bullet);
+        c.font = "20px Arial";
+        c.fillText("Humans killed: "+this.state.killcount, 10, 20);
+        c.fillText("Civilians evacuated: "+this.state.flee, 10, 40);
+        c.fillText("Level: "+this.state.level, 10, 60);
+    }
+    init(){
+        this.state={};
+        this.state.level=1;
+        this.state.killcount=0;
+        this.state.flee=0;
+    }
+    save(){
+        localStorage.setItem('state', JSON.stringify(this.state));
+    }
+    load(){
+        var saved = localStorage.getItem('state');
+        if(saved != null){
+            this.state = JSON.parse(saved);
+        }
+        else{
+            this.init();
+        }
+    }
+}
+document.body.innerHTML = "";
+document.body.append(canvas)
+var game=new Game();
+canvas.onclick=function(e){
+    const rect = canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    game.zombies[game.zombies.length]= new Zombie(4,x,y,10,2);
+}
+var blob = new Blob (["setInterval(()=>self.postMessage('loop'), "+timeStep+");"]);
+var workerScript = window.URL.createObjectURL(blob);
+var worker = new Worker (workerScript);
+worker.onmessage = ()=>game.update();
+</script>
+</html>
