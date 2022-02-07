@@ -224,7 +224,7 @@ class Game{
     }
     changelevel(level){
         this.state.level=level;
-        //this.save();
+        this.save();
         this.bullets.splice(0,this.bullets.length);
         this.populate();
         this.undead.zombies.splice(2000,this.undead.zombies.length-2000);
