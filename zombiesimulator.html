@@ -13,58 +13,13 @@ var timeStep = 30; // In milliseconds
 function getRandom(min, max) {
     return Math.random() * (max - min) + min;
 }
-class Bullet{
-    constructor(x,y,speed,direction,target){
+class GameObject{
+    constructor(x,y,height,width,color){
         this.x=x;
-        this.y=y;
-        this.speed=speed;
-        this.direction=direction;
-        this.target=target;
-    }
-    prestroke(){
-        c.beginPath();
-        c.lineWidth = 1;
-        c.strokeStyle = "#ffcc00";
-    }
-    stroke(){
-        c.rect(this.x,this.y,1,1);
-    }
-    poststroke(){
-        c.stroke();
-    }
-    update(){
-        this.x+=Math.cos(this.direction)*this.speed;
-        this.y+=Math.sin(this.direction)*this.speed;
-        if(this.x<0 || this.y <0 || this.x > w || this.y > h)
-            return true;
-        else
-            return this.checkCollision(this.target);
-    }
-    checkCollision(humanoids){
-        for(let i=0;i<humanoids.length;i++){
-            const x=this.x-humanoids[i].x;
-            const y=this.y-humanoids[i].y;
-            if(Math.abs(x)<humanoids[i].width && Math.abs(y) < humanoids[i].height){
-                humanoids[i].health--;
-                return true;
-            }
-        }
-        return false;
-    }
-}
-class Humanoid{
-    constructor(size,x,y,color,health,speed) {
-        this.height = size*2;
-        this.width = size;
-        this.x=x;
-        this.y=y-size;
+        this.y=y-height/2;
+        this.height = height;
+        this.width = width;
         this.color=color;
-        this.target=null;
-        this.maxhealth = health;
-        this.health = this.maxhealth;
-        this.maxspeed=speed;
-        this.speed=this.maxspeed;
-        this.vision=100**2;
     }
     prestroke(){
         c.beginPath();
@@ -77,12 +32,51 @@ class Humanoid{
     poststroke(){
         c.stroke();
     }
+}
+class Bullet extends GameObject{
+    constructor(x,y,speed,direction,target){
+        super(x,y,1,1,"#ffcc00") //yellow color
+        this.speed=speed;
+        this.direction=direction;
+        this.target=target;
+    }
+    update(){
+        this.x+=Math.cos(this.direction)*this.speed;
+        this.y+=Math.sin(this.direction)*this.speed;
+        if(this.x<0 || this.y <0 || this.x > w || this.y > h)
+            return true;
+        else
+            return this.checkCollision(this.target);
+    }
+    checkCollision(humanoids){
+        for(let list in humanoids){
+            for(let humanoid of humanoids[list]){
+                const x=this.x-humanoid.x;
+                const y=this.y-humanoid.y;
+                if(Math.abs(x)<humanoid.width && Math.abs(y) < humanoid.height){
+                    humanoid.health--;
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+}
+class Humanoid extends GameObject{
+    constructor(size,x,y,color,health,speed) {
+        super(x,y,size,size,color);
+        this.height = size*2;
+        this.width = size;
+        this.target=null;
+        this.maxhealth = health;
+        this.health = this.maxhealth;
+        this.maxspeed=speed;
+        this.speed=this.maxspeed;
+        this.vision=100**2;
+    }
     move(dir){
         this.x+=Math.cos(dir)*this.speed;
         this.y+=Math.sin(dir)*this.speed;
-        //don't move outside canvas area
-        //this.x=Math.max(0,Math.min(w-this.width,this.x))
-        //this.y=Math.max(0,Math.min(h-this.height,this.y))
     }
     update(){
         this.speed=this.maxspeed*this.health/this.maxhealth;
@@ -90,14 +84,40 @@ class Humanoid{
     getTarget(humanoids){
         if(this.target==null)var max=this.vision;
         else var max=(this.x-this.target.x)**2+(this.y-this.target.y)**2;//Math.hypot(this.x-this.target.x,this.y-this.target.y);
-        for(let i=0;i<humanoids.length;i++){
-            const x=this.x-humanoids[i].x;
-            const y=this.y-humanoids[i].y;
-            const d=(x)**2+(y)**2;
-            if(d<max){
-                max=d;
-                this.target=humanoids[i];
+        for(let list in humanoids){
+            for(let humanoid of humanoids[list]){
+                const x=this.x-humanoid.x;
+                const y=this.y-humanoid.y;
+                const d=(x)**2+(y)**2;
+                if(d<max){
+                    max=d;
+                    this.target=humanoid;
+                }
             }
+        }
+    }
+}
+class Player extends Humanoid{
+    constructor(size,x,y,health,speed){
+        super(size,x,y,"black",health,speed)
+    }
+    checkpos(){
+        //don't move outside canvas area
+        this.x=Math.max(0,Math.min(w-this.width,this.x));
+        this.y=Math.max(0,Math.min(h-this.height,this.y));
+    }
+    update(){
+        super.update();
+        //check keypress
+        let l=0;
+        let v=0;
+        if(game.keys[87])v--;//w
+        if(game.keys[65])l--;//a
+        if(game.keys[83])v++;//s
+        if(game.keys[68])l++;//d
+        if(l || v){
+            this.move(Math.atan2(v,l));
+            this.checkpos();
         }
     }
 }
@@ -133,7 +153,7 @@ class Civilian extends Humanoid{
     }
     update(){
         super.update();
-        this.getTarget(game.zombies);
+        this.getTarget(game.undead);
         if(this.target==null){
             this.move(getRandom(-Math.PI,Math.PI));
         }else{
@@ -151,13 +171,13 @@ class Police extends Humanoid{
         this.reload=0;
     }
     shoot(dir){
-        game.bullets.push(new Bullet(this.x,this.y,4,dir,game.zombies));
+        game.bullets.push(new Bullet(this.x,this.y,4,dir,game.undead));
     }
     update(){
         super.update();
         if(this.target?.health<=0)
             this.target=null;
-        this.getTarget(game.zombies);
+        this.getTarget(game.undead);
         if(this.target==null){
             this.move(getRandom(-Math.PI,Math.PI));
         }else{
@@ -179,41 +199,44 @@ class Police extends Humanoid{
 class Game{
     constructor() {
         this.load();
-        this.zombies=[]
-        this.humans=[]
+        this.undead={zombies:[],player:[]}
+        this.alive=0;
+        this.humans={civilians:[],police:[]}
         this.bullets=[]
         this.populate()
         this.keys = [];
     }
     populate(){
-        const max=Math.min(10000,this.state.level*100);
+        const max=Math.min(20000,this.state.level*100);
         const prob=max/20000
         for(let i=0;i<max;i++){
             const x=getRandom(w/4,w/4*3);
             const y=getRandom(h/4,h/4*3);
             const rand = Math.random() < prob;
             if(rand){
-                this.humans.push(new Police(x,y,this.state.level*10,1));
+                this.humans.police.push(new Police(x,y,this.state.level*10,1));
+                this.alive++;
             }else{
-                this.humans.push(new Civilian(x,y,this.state.level*10,1));
+                this.humans.civilians.push(new Civilian(x,y,this.state.level*10,1));
+                this.alive++;
             }
         }
     }
     changelevel(level){
         this.state.level=level;
-        this.save();
+        //this.save();
         this.bullets.splice(0,this.bullets.length);
         this.populate();
-        this.zombies.splice(1000,this.zombies.length-1000);
-        for(let i=0;i<this.zombies.length;i++){
+        this.undead.zombies.splice(2000,this.undead.zombies.length-2000);
+        for(let i=0;i<this.undead.zombies.length;i++){
             const dir=getRandom(0,Math.PI/2);
             const speed=getRandom(0,Math.min(w/4,h/4))
-            this.zombies[i].x=Math.cos(dir)*speed;
-            this.zombies[i].y=Math.sin(dir)*speed;
+            this.undead.zombies[i].x=Math.cos(dir)*speed;
+            this.undead.zombies[i].y=Math.sin(dir)*speed;
         }
     }
     update(){
-        if(this.humans.length==0)this.changelevel(this.state.level+1)
+        if(this.alive==0)this.changelevel(this.state.level+1)
         for(let i=0;i<this.bullets.length;){
             if(this.bullets[i].update()){
                 this.bullets.splice(i, 1);
@@ -221,47 +244,52 @@ class Game{
                 i++;
             }
         }
-        for(let i=0;i<this.zombies.length;){
-            if(this.zombies[i].health<=0){
-                this.zombies.splice(i, 1);
-            }else{
-                this.zombies[i].update();
-                i++;
+        for(let list in this.undead){
+            for(let i=0;i<this.undead[list].length;){
+                if(this.undead[list][i].health<=0){
+                    this.undead[list].splice(i, 1);
+                }else{
+                    this.undead[list][i].update();
+                    i++;
+                }
             }
         }
-        for(let i=0;i<this.humans.length;){
-            if(this.humans[i].health<=0){
-                this.zombies[this.zombies.length]= new Zombie(4,this.humans[i].x,this.humans[i].y,10,2);
-                this.humans.splice(i, 1);
-                this.state.killcount++;
-            }else if(this.humans[i].x<0 || this.humans[i].y <0 || this.humans[i].x > w || this.humans[i].y > h){
-                this.humans[i].health=0;
-                this.humans.splice(i, 1);
-                this.state.flee++;
-            }else{
-                this.humans[i].update();
-                i++;
+        for(let list in this.humans){
+            for(let i=0;i<this.humans[list].length;){
+                let human=this.humans[list][i]
+                if(human.health<=0){
+                    this.undead.zombies[this.undead.zombies.length]= new Zombie(4,human.x,human.y,10,2);
+                    this.humans[list].splice(i, 1);
+                    this.state.killcount++;
+                    this.alive--;
+                }else if(human.x<0 || human.y <0 || human.x > w || human.y > h){
+                    human.health=0;
+                    this.humans[list].splice(i, 1);
+                    this.state.flee++;
+                    this.alive--;
+                }else{
+                    human.update();
+                    i++;
+                }
             }
         }
         if(!document.hidden)requestAnimationFrame(()=>game.stroke());  // for subsequent frames
     }
-    strokeclass(list,instance){
-        let first=list.find(h=>h instanceof instance)
+    strokeclass(list){
+        let first=list[0]
         if(first){
             first.prestroke();
-            for(let i of list){
-                if(i instanceof instance)
-                    i.stroke();
+            for(let e of list){
+                e.stroke();
             }
             first.poststroke();
         }
     }
     stroke(){
         c.clearRect(0, 0, w, h);
-        this.strokeclass(this.humans,Civilian);
-        this.strokeclass(this.humans,Police);
-        this.strokeclass(this.zombies,Zombie);
-        this.strokeclass(this.bullets,Bullet);
+        for(let e in this.humans)this.strokeclass(this.humans[e])
+        for(let e in this.undead)this.strokeclass(this.undead[e])
+        this.strokeclass(this.bullets);
         c.font = "20px Arial";
         c.fillText("Humans killed: "+this.state.killcount, 10, 20);
         c.fillText("Civilians evacuated: "+this.state.flee, 10, 40);
@@ -293,8 +321,14 @@ canvas.onclick=function(e){
     const rect = canvas.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
-    game.zombies[game.zombies.length]= new Zombie(4,x,y,10,2);
+    game.undead.zombies[game.undead.zombies.length]= new Zombie(4,x,y,10,2);
 }
+window.addEventListener("keydown", function(e){
+    game.keys[e.keyCode] = true;
+}, false);
+window.addEventListener('keyup', function(e){
+    game.keys[e.keyCode] = false;
+}, false);
 var blob = new Blob (["setInterval(()=>self.postMessage('loop'), "+timeStep+");"]);
 var workerScript = window.URL.createObjectURL(blob);
 var worker = new Worker (workerScript);
