@@ -1,0 +1,275 @@
+div {
+    display:inline-block;
+}
+
+body {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    font-family:Arial, Helvetica, serif;
+    color:black;
+    font-size:14px;
+    height:100%;
+    margin:0;
+    background-color: black;
+    cursor:default;
+}
+
+.showthat:hover .showthis, .showthat2:hover .showthis2 {
+    display:block;
+    background-color: #c3d2ff;
+}
+.showthis, .showthis2 {
+    display:none;
+    position:absolute;
+    background-color: #b4b3e4;
+    border:1px solid;
+    padding:3px 5px;
+    min-width:300px;
+    border-radius:4px;
+    margin-top:5px;
+    z-index:999;
+    text-align:left;
+}
+
+.showthis2 {
+    z-index:1000;
+    min-width:200px;
+}
+
+input {
+    width:100px;
+}
+
+.title {
+    font-size:16px;
+    font-weight:bold;
+    display:block;
+    text-align:center;
+}
+
+
+.large {
+    font-size:16px;
+    font-weight:bold;
+}
+.medium {
+    z-index:3;
+    position: fixed;
+    font-size:14px;
+    font-weight:bold;
+}
+.small {
+    font-size:12px;
+    font-weight:bold;
+}
+
+.superLargeIcon {
+    width:30px;
+    height:30px;
+}
+.largeIcon {
+    width:20px;
+    height:20px;
+}
+.smallIcon {
+    width:16px;
+    height:16px;
+}
+
+input, label {
+    cursor:pointer;
+}
+
+.button {
+    border:2px white solid;
+    background-color: #bde0b7;
+    padding:3px 5px;
+    cursor:pointer;
+    border-radius:10px;
+    min-width:9px;
+    text-align:center;
+    vertical-align:center;
+}
+.button:hover {
+    border:2px blue solid;
+}
+
+.container {
+    z-index:2;
+    position: relative;
+    border:1px solid black;
+    margin:2px 6px;
+    padding:3px 8px;
+    border-radius:5px;
+    text-align:center;
+    min-width:100px;
+    opacity:.6;
+    background-color: #c3d2ff;
+}
+.container:hover {
+    opacity:1;
+    z-index:4;
+}
+
+.slider {
+    -webkit-appearance: none;  /* Override default CSS styles */
+    appearance: none;
+    width: 100%; /* Full-width */
+    height: 25px; /* Specified height */
+    background: #d3d3d3; /* Grey background */
+    outline: none; /* Remove outline */
+    opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
+    -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+    transition: opacity .2s;
+}
+
+.slider:hover {
+    opacity: 1; /* Fully shown on mouse-over */
+}
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none; /* Override default look */
+    appearance: none;
+    width: 25px; /* Set a specific slider handle width */
+    height: 25px; /* Slider handle height */
+    background: #4CAF50; /* Green background */
+    cursor: pointer; /* Cursor on hover */
+}
+
+.slider::-moz-range-thumb {
+    width: 25px; /* Set a specific slider handle width */
+    height: 25px; /* Slider handle height */
+    background: #4CAF50; /* Green background */
+    cursor: pointer; /* Cursor on hover */
+}
+
+.computerRow, .robotRow {
+    margin-bottom:5px;
+    border-bottom:1px solid;
+    display:block;
+    position:relative;
+}
+
+.computerTooltipContainer {
+    display:none;
+    position:absolute;
+    left:100%;
+    border:2px solid;
+    border-radius:5px;
+    background-color:white;
+    top:0;
+    padding:2px;
+    z-index:998;
+}
+
+.rowTooltip {
+    display:block;
+    width:250px;
+}
+
+.rowProgressBarOuter {
+    width:100px;
+    height:20px;
+    background-color:black;
+    float:right;
+    margin-left:5px;
+    margin-top:3px;
+}
+
+.rowProgressBarInner {
+    width:0;
+    height:18px;
+    margin-top:1px;
+    background-color:red;
+}
+
+
+.progress-bar {
+    position:relative;
+    display: inline-block;
+    width: 80px;
+    height: 80px;
+    margin: 7px;
+    padding: 0;
+    text-align:center;
+}
+
+.progress-bar .progress-active {
+    position: absolute;
+    left:5px;
+}
+
+.verticalProgress {
+    position: absolute;
+    width:10%;
+    height:30%;
+    bottom: 12%;
+    left: 45%;
+    background-color:grey;
+}
+
+.verticalProgressInner {
+    position: absolute;
+    width:100%;
+    bottom: 0;
+    left: 0;
+    background-color: black;
+}
+
+.fa.fa-arrow-right {
+    vertical-align:top;
+    margin-top:14px;
+    font-size:16px;
+}
+
+.forestIcon {
+    border:1px solid;
+    border-radius:3px;
+    width:45px;
+}
+
+.disabled {
+    pointer-events:none;
+    opacity:.2;
+}
+
+.comet {
+    z-index:1;
+    position:absolute;
+    width:20px;
+    height:20px;
+    background-color:blue;
+    opacity:.5;
+    border-radius:10px;
+}
+
+.asteroid {
+    position:absolute;
+    width:10px;
+    height:10px;
+    background-color:brown;
+    opacity:.5;
+    border-radius:5px;
+}
+
+.infoText {
+    border:1px solid;
+    border-top:0;
+    padding:0 5px;
+    height:23px;
+    vertical-align:top;
+    background-color: #c3d2ff;
+}
+
+.globalResourceInfo {
+    width:84px;
+    text-align:center;
+}
+
+#spaceContainer {
+    width:90%;
+    background-color:black;
+}
